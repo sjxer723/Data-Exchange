@@ -108,8 +108,8 @@ class CPA():
             path, delay_sample = sample_path(self.G)
             self.paths.append(path)
             self.delay_samples.append(delay_sample)
-        # self.cost = [0.001 for _ in range(_N)]
-        self.cost = [random.uniform(0, 0.05) for _ in range(_N)]
+        self.cost = [0.001 for _ in range(_N)]
+        # self.cost = [random.uniform(0.005, 0.01) for _ in range(_N)]
         self.possible_coalitions = dict() # coalition -> (utility, exchange)
         self.possible_exchanges = dict()
         self.invoke_oracle_num = 0
@@ -317,29 +317,30 @@ class CPA():
         # print(export_data)
 
 if __name__ == "__main__":
-    num_of_replication = 1
     num_of_coalitions = 0
+    num_of_replication = 20
     num_of_oracle_invokes = 0
     running_time = 0
-
-    for idx in range(num_of_replication):
+    n = 24
+    for rep_id in range(num_of_replication):
         start_time = time.time()
-        cpa = CPA('manhatten.graphml', 24)
+        cpa = CPA('manhatten.graphml', n)
         cpa.run()
         num_of_coalitions += cpa.num_of_coalitions
         num_of_oracle_invokes += cpa.invoke_oracle_num
-        cpa.export_coalitions(idx)
+        cpa.export_coalitions(rep_id)
         end_time = time.time()
         running_time += end_time - start_time
-        print("Replication {}: Running time: {}".format(idx, end_time - start_time))
+        print("Replication {}: Running time: {}".format(rep_id, end_time - start_time))
+
+        with open("coalition/summary-{}-{}.csv".format(n, rep_id), "w", newline='', encoding="utf-8") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Number of agents", "Number of oracle invokes", "Number of coalitions", "Running time"])
+            writer.writerow([n, cpa.invoke_oracle_num, cpa.num_of_coalitions, end_time - start_time])
 
     num_of_oracle_invokes /= num_of_replication
     num_of_coalitions /= num_of_replication
     running_time /= num_of_replication
-
-    # print("Number of oracle invokes: ", num_of_oracle_invokes)
-    # print("Number of coalitions: ", num_of_coalitions)
-    # print("Running time: ", running_time)
 
     print(num_of_oracle_invokes)
     print(num_of_coalitions)
